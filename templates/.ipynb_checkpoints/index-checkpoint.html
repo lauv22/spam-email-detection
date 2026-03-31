@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spam Email Detector</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 40px;
+      width: 100%;
+      max-width: 680px;
+      height: fit-content;
+    }
+    h1 { font-size: 1.8rem; color: #1a1a2e; margin-bottom: 8px; }
+    .subtitle { color: #666; margin-bottom: 24px; font-size: 0.95rem; }
+    textarea {
+      width: 100%; padding: 14px;
+      border: 1.5px solid #ddd; border-radius: 8px;
+      font-size: 0.95rem; resize: vertical;
+      outline: none; color: #333;
+    }
+    textarea:focus { border-color: #4f46e5; }
+    button {
+      margin-top: 16px; width: 100%; padding: 14px;
+      background: #4f46e5; color: white; border: none;
+      border-radius: 8px; font-size: 1rem;
+      font-weight: 600; cursor: pointer;
+    }
+    button:hover { background: #4338ca; }
+    .result {
+      margin-top: 28px; padding: 20px;
+      border-radius: 10px; background: #f8f9ff;
+      border: 1.5px solid #e0e0f0;
+    }
+    .badge { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+    .badge.spam { color: #e74c3c; }
+    .badge.ham  { color: #2ecc71; }
+    .details p  { font-size: 0.92rem; color: #444; margin-bottom: 6px; }
+    .details strong { color: #1a1a2e; }
+    .loader { margin-top: 20px; text-align: center; color: #4f46e5; font-weight: 600; }
+    .error  { margin-top: 16px; color: #e74c3c; font-size: 0.9rem; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛡️ Spam Email Detector</h1>
+    <p class="subtitle">Paste an email below to check if it is spam or legitimate.</p>
+
+    <textarea id="emailInput" rows="8"
+              placeholder="Paste your email text here..."></textarea>
+    <button onclick="checkEmail()">Check Email</button>
+
+    <div id="result" class="result hidden">
+      <div id="labelBadge" class="badge"></div>
+      <div id="details"    class="details"></div>
+    </div>
+    <div id="loader" class="loader hidden">Analyzing...</div>
+    <div id="error"  class="error  hidden"></div>
+  </div>
+
+  <script>
+    async function checkEmail() {
+      const email  = document.getElementById("emailInput").value.trim();
+      const result = document.getElementById("result");
+      const loader = document.getElementById("loader");
+      const errBox = document.getElementById("error");
+
+      result.classList.add("hidden");
+      errBox.classList.add("hidden");
+
+      if (!email) {
+        errBox.textContent = "⚠️ Please paste some email text first.";
+        errBox.classList.remove("hidden");
+        return;
+      }
+      loader.classList.remove("hidden");
+
+      try {
+        const response = await fetch("/predict", {
+          method : "POST",
+          headers: { "Content-Type": "application/json" },
+          body   : JSON.stringify({ email })
+        });
+        const data = await response.json();
+        loader.classList.add("hidden");
+
+        if (data.error) {
+          errBox.textContent = data.error;
+          errBox.classList.remove("hidden");
+          return;
+        }
+
+        const badge   = document.getElementById("labelBadge");
+        const details = document.getElementById("details");
+        badge.textContent = data.label === "SPAM" ? "🚨 SPAM" : "✅ HAM";
+        badge.className   = "badge " + (data.label === "SPAM" ? "spam" : "ham");
+        details.innerHTML = `
+          <p><strong>Confidence:</strong> ${data.confidence ? data.confidence + "%" : "N/A"}</p>
+          <p><strong>Vocabulary Matches:</strong> ${data.vocab_hits} words</p>
+          <p><strong>Matched Words:</strong> ${data.matched_words.join(", ") || "none"}</p>
+        `;
+        result.classList.remove("hidden");
+
+      } catch(err) {
+        loader.classList.add("hidden");
+        errBox.textContent = "❌ Something went wrong. Is the server running?";
+        errBox.classList.remove("hidden");
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.key === "Enter") checkEmail();
+    });
+  </script>
+</body>
+</html>
