@@ -19,5 +19,3 @@ High-accuracy (98%+) spam/ham email classifier using NLP (TF-IDF) + classical ML
 4. (Optional) `streamlit run app.py`
 
 **Results**: 98–99% accuracy on test set (see notebook).
-
-Made with ❤️ for SoftGrowTech internship.
