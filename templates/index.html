@@ -6,86 +6,430 @@
   <title>Spam Email Detector</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      font-family: 'Segoe UI', monospace;
+      background: #11111b;
       display: flex;
       justify-content: center;
       padding: 40px 16px;
       min-height: 100vh;
+      color: #cdd6f4;
     }
+
     .container {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      padding: 40px;
       width: 100%;
       max-width: 680px;
       height: fit-content;
     }
-    h1 { font-size: 1.8rem; color: #1a1a2e; margin-bottom: 8px; }
-    .subtitle { color: #666; margin-bottom: 24px; font-size: 0.95rem; }
+
+    .header {
+      margin-bottom: 28px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .shield-icon {
+      width: 32px; height: 32px;
+      background: #313244;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #cdd6f4;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #6c7086;
+      font-family: 'Segoe UI', sans-serif;
+      margin-left: 42px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: #1e1e2e;
+      border: 0.5px solid #313244;
+      border-radius: 10px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: #6c7086;
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .blue  { color: #89b4fa; }
+    .green { color: #a6e3a1; }
+    .red   { color: #f38ba8; }
+    .yellow{ color: #f9e2af; }
+    .muted { color: #6c7086; }
+
+    .editor-box {
+      background: #1e1e2e;
+      border: 0.5px solid #313244;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .editor-bar {
+      background: #181825;
+      border-bottom: 0.5px solid #313244;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red    { background: #f38ba8; }
+    .dot-yellow { background: #f9e2af; }
+    .dot-green  { background: #a6e3a1; }
+
+    .editor-label {
+      margin-left: 4px;
+      font-size: 11px;
+      color: #6c7086;
+      font-family: monospace;
+    }
+
     textarea {
-      width: 100%; padding: 14px;
-      border: 1.5px solid #ddd; border-radius: 8px;
-      font-size: 0.95rem; resize: vertical;
-      outline: none; color: #333;
+      width: 100%;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border: none;
+      outline: none;
+      padding: 16px;
+      font-size: 0.9rem;
+      font-family: 'Consolas', 'Courier New', monospace;
+      resize: vertical;
+      line-height: 1.6;
+      min-height: 160px;
     }
-    textarea:focus { border-color: #4f46e5; }
+
+    textarea::placeholder { color: #45475a; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
     button {
-      margin-top: 16px; width: 100%; padding: 14px;
-      background: #4f46e5; color: white; border: none;
-      border-radius: 8px; font-size: 1rem;
-      font-weight: 600; cursor: pointer;
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 0.5px solid #313244;
+      font-family: monospace;
+      transition: background 0.15s;
     }
-    button:hover { background: #4338ca; }
-    .result {
-      margin-top: 28px; padding: 20px;
-      border-radius: 10px; background: #f8f9ff;
-      border: 1.5px solid #e0e0f0;
+
+    .btn-primary {
+      background: #313244;
+      color: #89b4fa;
     }
-    .badge { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
-    .badge.spam { color: #e74c3c; }
-    .badge.ham  { color: #2ecc71; }
-    .details p  { font-size: 0.92rem; color: #444; margin-bottom: 6px; }
-    .details strong { color: #1a1a2e; }
-    .loader { margin-top: 20px; text-align: center; color: #4f46e5; font-weight: 600; }
-    .error  { margin-top: 16px; color: #e74c3c; font-size: 0.9rem; }
+    .btn-primary:hover { background: #45475a; }
+
+    .btn-clear {
+      background: transparent;
+      color: #6c7086;
+      flex: 0 0 auto;
+      padding: 12px 18px;
+    }
+    .btn-clear:hover { background: #1e1e2e; color: #cdd6f4; }
+
+    .result-box {
+      background: #1e1e2e;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 0.5px solid #313244;
+    }
+
+    .result-header {
+      padding: 14px 18px;
+      border-bottom: 0.5px solid #313244;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .verdict-badge {
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: monospace;
+      padding: 4px 12px;
+      border-radius: 6px;
+      letter-spacing: 1px;
+    }
+
+    .badge-spam {
+      background: #2d1b1e;
+      color: #f38ba8;
+      border: 0.5px solid #f38ba8;
+    }
+
+    .badge-ham {
+      background: #1a2e1e;
+      color: #a6e3a1;
+      border: 0.5px solid #a6e3a1;
+    }
+
+    .confidence-bar-wrap {
+      flex: 1;
+      background: #313244;
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .confidence-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .bar-spam  { background: #f38ba8; }
+    .bar-ham   { background: #a6e3a1; }
+
+    .conf-pct {
+      font-size: 12px;
+      font-family: monospace;
+      color: #6c7086;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .result-cell {
+      padding: 14px 18px;
+      border-right: 0.5px solid #313244;
+      border-bottom: 0.5px solid #313244;
+    }
+
+    .result-cell:nth-child(even) { border-right: none; }
+    .result-cell:nth-child(n+3)  { border-bottom: none; }
+
+    .cell-label {
+      font-size: 10px;
+      color: #6c7086;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .cell-value {
+      font-size: 0.92rem;
+      font-family: monospace;
+      color: #cdd6f4;
+      word-break: break-word;
+    }
+
+    .words-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 4px;
+    }
+
+    .word-tag {
+      background: #313244;
+      color: #89b4fa;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .loader-bar {
+      height: 3px;
+      background: #313244;
+      border-radius: 2px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    .loader-fill {
+      height: 100%;
+      width: 30%;
+      background: #89b4fa;
+      border-radius: 2px;
+      animation: slide 1s infinite ease-in-out;
+    }
+
+    @keyframes slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(400%); }
+    }
+
+    .loader-text {
+      font-size: 12px;
+      color: #6c7086;
+      font-family: monospace;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .error-box {
+      background: #2d1b1e;
+      border: 0.5px solid #f38ba8;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      color: #f38ba8;
+      font-family: monospace;
+      margin-top: 12px;
+    }
+
     .hidden { display: none; }
+
+    .kbd-hint {
+      text-align: center;
+      font-size: 11px;
+      color: #45475a;
+      margin-top: 12px;
+      font-family: monospace;
+    }
+
+    kbd {
+      background: #313244;
+      border: 0.5px solid #45475a;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 10px;
+      color: #6c7086;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🛡️ Spam Email Detector</h1>
-    <p class="subtitle">Paste an email below to check if it is spam or legitimate.</p>
 
-    <textarea id="emailInput" rows="8"
-              placeholder="Paste your email text here..."></textarea>
-    <button onclick="checkEmail()">Check Email</button>
-
-    <div id="result" class="result hidden">
-      <div id="labelBadge" class="badge"></div>
-      <div id="details"    class="details"></div>
+    <div class="header">
+      <div class="header-top">
+        <div class="shield-icon">&#128737;</div>
+        <h1>spam_detector.py</h1>
+      </div>
+      <p class="subtitle">Paste email content below — press Analyze or Ctrl+Enter</p>
     </div>
-    <div id="loader" class="loader hidden">Analyzing...</div>
-    <div id="error"  class="error  hidden"></div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value blue">5,172</div>
+        <div class="stat-label">Training emails</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value green">96.4%</div>
+        <div class="stat-label">Model accuracy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value yellow">3,000</div>
+        <div class="stat-label">Word features</div>
+      </div>
+    </div>
+
+    <div class="editor-box">
+      <div class="editor-bar">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+        <span class="editor-label">email_input.txt</span>
+      </div>
+      <textarea id="emailInput" rows="8"
+        placeholder="# paste your email text here...&#10;# e.g. 'Congratulations! You have won a FREE prize...'"></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="checkEmail()">&#9654; Analyze Email</button>
+      <button class="btn-clear" onclick="clearAll()">&#10005; Clear</button>
+    </div>
+
+    <div id="loaderWrap" class="hidden">
+      <div class="loader-text">&#9654; analyzing email content...</div>
+      <div class="loader-bar"><div class="loader-fill"></div></div>
+    </div>
+
+    <div id="errorBox" class="error-box hidden"></div>
+
+    <div id="resultBox" class="result-box hidden">
+      <div class="result-header">
+        <div id="verdictBadge" class="verdict-badge"></div>
+        <div class="confidence-bar-wrap">
+          <div id="confBar" class="confidence-bar" style="width:0%"></div>
+        </div>
+        <div id="confPct" class="conf-pct">0%</div>
+      </div>
+      <div class="result-grid">
+        <div class="result-cell">
+          <div class="cell-label">Confidence</div>
+          <div class="cell-value" id="cellConf">—</div>
+        </div>
+        <div class="result-cell">
+          <div class="cell-label">Vocab hits</div>
+          <div class="cell-value" id="cellHits">—</div>
+        </div>
+        <div class="result-cell" style="grid-column: span 2; border-right: none;">
+          <div class="cell-label">Matched words</div>
+          <div id="cellWords" class="words-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="kbd-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to analyze</p>
+
   </div>
 
   <script>
     async function checkEmail() {
-      const email  = document.getElementById("emailInput").value.trim();
-      const result = document.getElementById("result");
-      const loader = document.getElementById("loader");
-      const errBox = document.getElementById("error");
+      const email   = document.getElementById("emailInput").value.trim();
+      const loader  = document.getElementById("loaderWrap");
+      const errBox  = document.getElementById("errorBox");
+      const result  = document.getElementById("resultBox");
 
       result.classList.add("hidden");
       errBox.classList.add("hidden");
 
       if (!email) {
-        errBox.textContent = "⚠️ Please paste some email text first.";
+        errBox.textContent = "// error: no input provided — paste email text first";
         errBox.classList.remove("hidden");
         return;
       }
+
       loader.classList.remove("hidden");
 
       try {
@@ -98,30 +442,56 @@
         loader.classList.add("hidden");
 
         if (data.error) {
-          errBox.textContent = data.error;
+          errBox.textContent = "// error: " + data.error;
           errBox.classList.remove("hidden");
           return;
         }
 
-        const badge   = document.getElementById("labelBadge");
-        const details = document.getElementById("details");
-        badge.textContent = data.label === "SPAM" ? "🚨 SPAM" : "✅ HAM";
-        badge.className   = "badge " + (data.label === "SPAM" ? "spam" : "ham");
-        details.innerHTML = `
-          <p><strong>Confidence:</strong> ${data.confidence ? data.confidence + "%" : "N/A"}</p>
-          <p><strong>Vocabulary Matches:</strong> ${data.vocab_hits} words</p>
-          <p><strong>Matched Words:</strong> ${data.matched_words.join(", ") || "none"}</p>
-        `;
+        const isSpam = data.label === "SPAM";
+        const conf   = data.confidence ? parseFloat(data.confidence) : null;
+
+        const badge = document.getElementById("verdictBadge");
+        badge.textContent  = isSpam ? "SPAM" : "HAM";
+        badge.className    = "verdict-badge " + (isSpam ? "badge-spam" : "badge-ham");
+
+        const bar = document.getElementById("confBar");
+        bar.style.width    = conf ? conf + "%" : "50%";
+        bar.className      = "confidence-bar " + (isSpam ? "bar-spam" : "bar-ham");
+
+        document.getElementById("confPct").textContent  = conf ? Math.round(conf) + "%" : "n/a";
+        document.getElementById("cellConf").textContent = conf ? Math.round(conf) + "%" : "n/a";
+        document.getElementById("cellHits").textContent = data.vocab_hits + " words";
+
+        const wordsEl = document.getElementById("cellWords");
+        wordsEl.innerHTML = "";
+        const words = data.matched_words || [];
+        if (words.length === 0) {
+          wordsEl.innerHTML = '<span style="color:#6c7086;font-size:12px;font-family:monospace;">none</span>';
+        } else {
+          words.forEach(w => {
+            const tag = document.createElement("span");
+            tag.className   = "word-tag";
+            tag.textContent = w;
+            wordsEl.appendChild(tag);
+          });
+        }
+
         result.classList.remove("hidden");
 
       } catch(err) {
         loader.classList.add("hidden");
-        errBox.textContent = "❌ Something went wrong. Is the server running?";
+        errBox.textContent = "// error: could not reach server — is /predict running?";
         errBox.classList.remove("hidden");
       }
     }
 
-    document.addEventListener("keydown", (e) => {
+    function clearAll() {
+      document.getElementById("emailInput").value = "";
+      document.getElementById("resultBox").classList.add("hidden");
+      document.getElementById("errorBox").classList.add("hidden");
+    }
+
+    document.addEventListener("keydown", e => {
       if (e.ctrlKey && e.key === "Enter") checkEmail();
     });
   </script>
